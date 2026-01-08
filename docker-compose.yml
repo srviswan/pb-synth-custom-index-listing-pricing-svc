@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Solace PubSub+ Broker
+  solace:
+    image: solace/solace-pubsub-standard:latest
+    container_name: cib-solace
+    shm_size: '1g'
+    ports:
+      - "8080:8080"   # Management UI
+      - "55555:55555" # SMF
+      - "55554:55554" # SMF SSL
+    environment:
+      - username_admin_globalaccesslevel=admin
+      - username_admin_password=admin
+
+  # Redis for Caching
+  redis:
+    image: redis:7-alpine
+    container_name: cib-redis
+    ports:
+      - "6379:6379"
+
+  # Postgres for Basket/Audit/etc.
+  postgres:
+    image: postgres:16-alpine
+    container_name: cib-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=cib_user
+      - POSTGRES_PASSWORD=cib_pass
+      - POSTGRES_DB=cib_db
+
+  # MSSQL (Primary DB) - Using Azure SQL Edge for ARM64 compatibility
+  mssql:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: cib-mssql
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+

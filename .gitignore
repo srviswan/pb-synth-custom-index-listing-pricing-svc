@@ -1,0 +1,13 @@
+target/
+*.class
+.history/
+.idea/
+*.iml
+.vscode/
+bin/
+build/
+.DS_Store
+*.log
+validation_results.txt
+agent-tools/
+terminals/

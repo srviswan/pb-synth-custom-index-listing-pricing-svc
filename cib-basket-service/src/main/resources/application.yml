@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: cib-basket-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cib_db
+    username: cib_user
+    password: cib_pass
+    driver-class-name: org.postgresql.Driver
+  cloud:
+    stream:
+      function:
+        definition: basketPriced
+      bindings:
+        basketPriced-in-0:
+          destination: basket.priced
+          group: basket-group
+        basketListed-out-0:
+          destination: basket.listed
+        basketReadyForPricing-out-0:
+          destination: basket.ready_for_pricing
+        basketReadyForPublishing-out-0:
+          destination: basket.ready_for_publishing
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8081
+
+logging:
+  level:
+    com.pb.synth.cib: DEBUG
+    org.hibernate.SQL: DEBUG
+
+cib:
+  cache:
+    type: in-memory

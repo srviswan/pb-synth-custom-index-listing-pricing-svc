@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: cib-listing-service
+  cloud:
+    stream:
+      function:
+        definition: basketListed
+      bindings:
+        basketListed-in-0:
+          destination: basket.listed
+          group: listing-group
+        providerListingRequested-out-0:
+          destination: provider.listing.requested
+
+server:
+  port: 8085
+
+logging:
+  level:
+    com.pb.synth.cib: DEBUG
+
+cib:
+  cache:
+    type: in-memory

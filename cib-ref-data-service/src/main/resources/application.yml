@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: cib-ref-data-service
+
+server:
+  port: 8083
+
+logging:
+  level:
+    com.pb.synth.cib: DEBUG
+
+cib:
+  cache:
+    type: in-memory

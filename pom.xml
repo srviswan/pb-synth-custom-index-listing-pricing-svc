@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.1</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.pb.synth.cib</groupId>
+    <artifactId>cib-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Custom Index Listing &amp; Pricing Suite</name>
+    <description>Blueprint for Custom Index Listing &amp; Pricing Suite</description>
+
+    <modules>
+        <module>cib-shared-infra</module>
+        <module>cib-basket-service</module>
+        <module>cib-listing-service</module>
+        <module>cib-pricing-service</module>
+        <module>cib-publishing-service</module>
+        <module>cib-market-data-service</module>
+        <module>cib-ref-data-service</module>
+    </modules>
+
+    <properties>
+        <java.version>21</java.version>
+        <spring-cloud.version>2024.0.0</spring-cloud.version>
+        <spring-cloud-stream-solace.version>5.1.0</spring-cloud-stream-solace.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <lombok.version>1.18.36</lombok.version>
+        <protobuf.version>3.25.5</protobuf.version>
+        <protobuf-java-format.version>1.4</protobuf-java-format.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.solace.spring.cloud</groupId>
+                <artifactId>spring-cloud-starter-stream-solace</artifactId>
+                <version>${spring-cloud-stream-solace.version}</version>
+            </dependency>
+            <!-- Removing problematic solace BOM and adding starter directly -->
+            <!-- Shared Internal Module -->
+            <dependency>
+                <groupId>com.pb.synth.cib</groupId>
+                <artifactId>cib-shared-infra</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${mapstruct.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: cib-publishing-service
+  cloud:
+    stream:
+      function:
+        definition: basketReadyForPublishing
+      bindings:
+        basketReadyForPublishing-in-0:
+          destination: basket.ready_for_publishing
+          group: publishing-group
+
+server:
+  port: 8087
+
+logging:
+  level:
+    com.pb.synth.cib: DEBUG
+
+cib:
+  cache:
+    type: in-memory

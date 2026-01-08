@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: cib-market-data-service
+
+server:
+  port: 8084
+
+logging:
+  level:
+    com.pb.synth.cib: DEBUG
+
+cib:
+  cache:
+    type: in-memory

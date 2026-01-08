@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: cib-pricing-service
+  cloud:
+    stream:
+      function:
+        definition: basketReadyForPricing
+      bindings:
+        basketReadyForPricing-in-0:
+          destination: basket.ready_for_pricing
+          group: pricing-group
+        basketPriced-out-0:
+          destination: basket.priced
+
+server:
+  port: 8086
+
+logging:
+  level:
+    com.pb.synth.cib: DEBUG
+
+cib:
+  cache:
+    type: in-memory
