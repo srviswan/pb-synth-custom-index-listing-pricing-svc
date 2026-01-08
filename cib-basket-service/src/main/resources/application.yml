@@ -7,19 +7,67 @@ spring:
     password: cib_pass
     driver-class-name: org.postgresql.Driver
   cloud:
+    function:
+      definition: basketPriced;basketListingCompleted;providerPublished;basketCreateRequested
     stream:
-      function:
-        definition: basketPriced
+      default-binder: kafka
       bindings:
+        basketCreateRequested-in-0:
+          destination: basket.create.requested
+          group: basket-group
         basketPriced-in-0:
           destination: basket.priced
           group: basket-group
-        basketListed-out-0:
-          destination: basket.listed
+          consumer:
+            max-attempts: 3
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+        basketListingCompleted-in-0:
+          destination: basket.listing.completed
+          group: basket-group
+          consumer:
+            max-attempts: 3
+        providerPublished-in-0:
+          destination: provider.published
+          group: basket-group
+          consumer:
+            max-attempts: 3
+        basketCreated-out-0:
+          destination: basket.created
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 3
         basketReadyForPricing-out-0:
           destination: basket.ready_for_pricing
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 3
         basketReadyForPublishing-out-0:
           destination: basket.ready_for_publishing
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 3
+      kafka:
+        binder:
+          brokers: localhost:9092
+          metrics:
+            enabled: false
+          auto-add-partitions: true
+          min-partition-count: 3
+        bindings:
+          basketPriced-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: basket.priced.dlq
+          basketListingCompleted-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: basket.listing.completed.dlq
+          providerPublished-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: provider.published.dlq
   jpa:
     hibernate:
       ddl-auto: validate
@@ -31,13 +79,32 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-auth.cib.com/realms/master
 
 server:
   port: 8081
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: cib-basket-service
+
 logging:
   level:
     com.pb.synth.cib: DEBUG
+    org.springframework.cloud.stream: DEBUG
+    org.springframework.cloud.function: DEBUG
     org.hibernate.SQL: DEBUG
 
 cib:

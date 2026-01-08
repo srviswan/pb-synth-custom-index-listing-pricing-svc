@@ -35,6 +35,9 @@ class BasketServiceTest {
     @Mock
     private ReferenceDataClient referenceDataClient;
 
+    @Mock
+    private com.pb.synth.cib.infra.event.EventPublisher eventPublisher;
+
     @InjectMocks
     private BasketService basketService;
 
@@ -49,12 +52,14 @@ class BasketServiceTest {
                 .id(basketId)
                 .name("Test Basket")
                 .status("DRAFT")
+                .divisor(new BigDecimal("100.0"))
                 .constituents(new ArrayList<>())
                 .version(1L)
                 .build();
 
         basketDto = BasketDto.builder()
                 .name("Test Basket")
+                .divisor(new BigDecimal("100.0"))
                 .constituents(List.of(
                         BasketDto.ConstituentDto.builder()
                                 .instrumentId("AAPL")
@@ -76,7 +81,8 @@ class BasketServiceTest {
 
         assertNotNull(result);
         verify(basketRepository).save(any(Basket.class));
-        assertEquals("DRAFT", basket.getStatus());
+        assertEquals("LISTING_IN_PROGRESS", basket.getStatus());
+        assertEquals(new BigDecimal("100.0"), basket.getDivisor());
     }
 
     @Test

@@ -1,31 +1,32 @@
-package com.pb.synth.cib.basket.dto;
+package com.pb.synth.cib.infra.event.payload;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @Builder
-public class BasketDto {
-    private UUID id;
+@NoArgsConstructor
+@AllArgsConstructor
+public class BasketCreateRequestedEvent {
     private String name;
     private String type;
-    private String status;
     private String sourceSystem;
     private BigDecimal divisor;
-    private Long version;
-    private List<ConstituentDto> constituents;
+    private List<ConstituentRequested> constituents;
 
     @Data
     @Builder
-    public static class ConstituentDto {
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ConstituentRequested {
         private String instrumentId;
         private String instrumentType;
         private BigDecimal weight;
-        private BigDecimal quantity;
         private String currency;
     }
 }

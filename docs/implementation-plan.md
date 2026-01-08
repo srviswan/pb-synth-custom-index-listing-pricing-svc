@@ -12,15 +12,19 @@ This document outlines the step-by-step implementation strategy for the Custom I
 2.  **Shared Module (`cib-shared-infra`):**
     *   Implement common Error Model (problem-json).
     *   Define the Event Envelope (traceId, idempotencyKey, payload).
-    *   Setup Messaging Abstraction using Spring Cloud Stream with Solace/Kafka profiles.
+    *   Setup Messaging Abstraction using Spring Cloud Stream with Kafka (testing) / Solace (enterprise) profiles.
     *   Implement a **Pluggable Caching Abstraction Layer** (using Spring Cache or custom interfaces) to allow switching between Redis, Hazelcast, or In-memory implementations without changing business logic.
     *   Integrate Protobuf for inter-service message serialization and gRPC support where latency is critical [[memory:6883576]].
     *   Add common logging and OTel tracing configuration.
 3.  **Local Development Environment:**
     *   Create a `docker-compose.yml` with:
         *   MSSQL / Postgres (containers) [[memory:8058548]].
-        *   Solace PubSub+ Standard Edition.
-        *   Redis (for caching).
+    *   Apache Kafka (for testing event streaming).
+    *   Redis (for caching).
+4.  **End-to-End Testing:**
+    *   Create comprehensive test scripts (`scripts/e2e-event-driven.sh`) to verify the full lifecycle:
+        - Create -> Add Constituents -> List (REST) -> [Auto Listing -> Auto Pricing -> Auto Publishing] (Events).
+        - Verify asynchronous state transitions and event propagation via Kafka topics.
 
 ## Phase 2: Core Domain & Basket Management
 **Goal:** Implement the primary lifecycle management service.
@@ -92,9 +96,9 @@ This document outlines the step-by-step implementation strategy for the Custom I
 
 ---
 **Status Tracking:**
-- [ ] Phase 1: Foundation & Shared Infra
-- [ ] Phase 2: Core Domain & Basket Management
-- [ ] Phase 3: Integration Services
-- [ ] Phase 4: Workflow Services
-- [ ] Phase 5: Observability & Security
-- [ ] Phase 6: Deployment & CI/CD
+- [x] Phase 1: Foundation & Shared Infra
+- [x] Phase 2: Core Domain & Basket Management
+- [x] Phase 3: Integration Services
+- [x] Phase 4: Workflow Services
+- [x] Phase 5: Observability & Security
+- [x] Phase 6: Deployment & CI/CD

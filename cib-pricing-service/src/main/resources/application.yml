@@ -2,15 +2,29 @@ spring:
   application:
     name: cib-pricing-service
   cloud:
+    function:
+      definition: basketListingCompleted;basketDecommissioned
     stream:
-      function:
-        definition: basketReadyForPricing
+      default-binder: kafka
       bindings:
-        basketReadyForPricing-in-0:
-          destination: basket.ready_for_pricing
+        basketListingCompleted-in-0:
+          destination: basket.listing.completed
+          group: pricing-group
+        basketDecommissioned-in-0:
+          destination: basket.decommissioned
           group: pricing-group
         basketPriced-out-0:
           destination: basket.priced
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 3
+      kafka:
+        binder:
+          brokers: localhost:9092
+          metrics:
+            enabled: false # Disable to avoid ConcurrentModificationException in metrics collector
+          auto-add-partitions: true
+          min-partition-count: 3
 
 server:
   port: 8086

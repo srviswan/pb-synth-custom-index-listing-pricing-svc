@@ -14,11 +14,12 @@ public interface BasketMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "basket", ignore = true)
     @Mapping(target = "asOf", ignore = true)
-    @Mapping(target = "divisor", ignore = true)
     Constituent toEntity(BasketDto.ConstituentDto dto);
 
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "constituents", ignore = true)
     Basket toEntity(BasketDto dto);
 }

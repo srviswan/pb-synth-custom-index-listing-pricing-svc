@@ -2,15 +2,36 @@ spring:
   application:
     name: cib-listing-service
   cloud:
+    function:
+      definition: basketCreated
     stream:
-      function:
-        definition: basketListed
+      default-binder: kafka
       bindings:
-        basketListed-in-0:
-          destination: basket.listed
+        basketCreated-in-0:
+          destination: basket.created
           group: listing-group
         providerListingRequested-out-0:
           destination: provider.listing.requested
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 3
+        providerListed-out-0:
+          destination: provider.listed
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 3
+        basketListingCompleted-out-0:
+          destination: basket.listing.completed
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 3
+      kafka:
+        binder:
+          brokers: localhost:9092
+          metrics:
+            enabled: false # Disable to avoid ConcurrentModificationException in metrics collector
+          auto-add-partitions: true
+          min-partition-count: 3
 
 server:
   port: 8085

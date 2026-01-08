@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BasketController.class)
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc(addFilters = false)
 class BasketControllerTest {
 
     @Autowired
@@ -29,6 +30,12 @@ class BasketControllerTest {
 
     @MockBean
     private BasketService basketService;
+
+    @MockBean
+    private com.pb.synth.cib.infra.event.EventPublisher eventPublisher;
+
+    @MockBean
+    private org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -39,12 +46,14 @@ class BasketControllerTest {
                 .name("Test Basket")
                 .type("EQUITY")
                 .sourceSystem("FRONT_OFFICE")
+                .divisor(new BigDecimal("100.0"))
                 .build();
 
         BasketDto response = BasketDto.builder()
                 .id(UUID.randomUUID())
                 .name("Test Basket")
                 .status("DRAFT")
+                .divisor(new BigDecimal("100.0"))
                 .version(1L)
                 .build();
 
@@ -55,6 +64,7 @@ class BasketControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Test Basket"))
+                .andExpect(jsonPath("$.divisor").value(100.0))
                 .andExpect(jsonPath("$.status").value("DRAFT"));
     }
 

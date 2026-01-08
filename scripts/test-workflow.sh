@@ -8,7 +8,8 @@ CREATE_RESPONSE=$(curl -s -X POST "$BASE_URL" \
      -d '{
            "name": "E2E Workflow Index",
            "type": "EQUITY",
-           "sourceSystem": "OMS"
+           "sourceSystem": "OMS",
+           "divisor": 100.0
          }')
 
 BASKET_ID=$(echo $CREATE_RESPONSE | grep -o '"id":"[^"]*' | cut -d'"' -f4)

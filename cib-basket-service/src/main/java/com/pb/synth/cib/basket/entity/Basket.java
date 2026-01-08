@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,9 @@ public class Basket {
     private String sourceSystem;
 
     private String owner;
+
+    @Column(precision = 18, scale = 6)
+    private BigDecimal divisor;
 
     @Version
     private Long version;

@@ -2,13 +2,26 @@ spring:
   application:
     name: cib-publishing-service
   cloud:
+    function:
+      definition: basketPriced
     stream:
-      function:
-        definition: basketReadyForPublishing
+      default-binder: kafka
       bindings:
-        basketReadyForPublishing-in-0:
-          destination: basket.ready_for_publishing
+        basketPriced-in-0:
+          destination: basket.priced
           group: publishing-group
+        providerPublished-out-0:
+          destination: provider.published
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 3
+      kafka:
+        binder:
+          brokers: localhost:9092
+          metrics:
+            enabled: false # Disable to avoid ConcurrentModificationException in metrics collector
+          auto-add-partitions: true
+          min-partition-count: 3
 
 server:
   port: 8087

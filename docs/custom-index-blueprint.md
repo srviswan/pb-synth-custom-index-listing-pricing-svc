@@ -10,7 +10,7 @@
 - Reference Data Service: golden-source validation; eligibility rules; CA signals; cache with TTL/circuit breakers.
 
 ## Tech Stack
-- Java 21, Spring Boot (LTS), Spring Data JPA, Spring Cloud Stream (Solace binder now, Kafka-ready), Spring Security (OIDC/JWT).
+- Java 21, Spring Boot (LTS), Spring Data JPA, Spring Cloud Stream (Kafka binder for testing), Spring Security (OIDC/JWT).
 - Protobuf & gRPC for high-performance internal communication.
 - **Abstracted Caching Layer**: Spring Cache with pluggable providers (Redis, Hazelcast, Caffeine).
 - MSSQL primary; Postgres-ready schema/migrations (Flyway/Liquibase), HikariCP.
@@ -237,7 +237,7 @@ components:
 - Error reporting: structured codes per field/instrument; partial success for bulk.
 
 ## Messaging Abstraction
-- Use Spring Cloud Stream bindings; profiles: `solace` (default), `kafka` (future).
+- Use Spring Cloud Stream bindings; profiles: `kafka` (default for testing), `solace` (enterprise).
 - Serialization: Support JSON (default) and Protobuf for high-performance inter-service communication.
 - Envelope: `{traceId, idempotencyKey, schemaVersion, payload}`; partition key `basketId`.
 - Reliability: retries/backoff, DLQ, idempotent consumers; sequence/version to avoid stale overwrites.

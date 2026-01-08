@@ -9,19 +9,21 @@ import com.pb.synth.cib.infra.client.ReferenceDataClient;
 import com.pb.synth.cib.infra.error.BusinessException;
 import com.pb.synth.cib.infra.event.EventEnvelope;
 import com.pb.synth.cib.infra.event.EventPublisher;
-import com.pb.synth.cib.infra.event.payload.BasketListedEvent;
+import com.pb.synth.cib.infra.event.payload.BasketCreateRequestedEvent;
+import com.pb.synth.cib.infra.event.payload.BasketCreatedEvent;
+import com.pb.synth.cib.infra.event.payload.BasketListingCompletedEvent;
 import com.pb.synth.cib.infra.event.payload.BasketPricedEvent;
-import com.pb.synth.cib.infra.event.payload.BasketReadyForPricingEvent;
+import com.pb.synth.cib.infra.event.payload.ProviderListedEvent;
+import com.pb.synth.cib.infra.event.payload.ProviderPublishedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,16 +35,46 @@ public class BasketService {
     private final ReferenceDataClient referenceDataClient;
     private final EventPublisher eventPublisher;
 
-    @Bean
-    public Consumer<EventEnvelope<BasketPricedEvent>> basketPriced() {
-        return envelope -> {
-            BasketPricedEvent event = envelope.getPayload();
-            log.info("Received basket priced event for basket: {}. NAV: {}", event.getBasketId(), event.getNav());
-            updateStatus(event.getBasketId(), "PRICED");
-        };
+    @Transactional
+    public void handleBasketCreateRequested(BasketCreateRequestedEvent event) {
+        log.info("Handling async basket creation request for: {}", event.getName());
+        BasketDto dto = BasketDto.builder()
+                .name(event.getName())
+                .type(event.getType())
+                .sourceSystem(event.getSourceSystem())
+                .divisor(event.getDivisor())
+                .constituents(event.getConstituents().stream()
+                        .map(c -> BasketDto.ConstituentDto.builder()
+                                .instrumentId(c.getInstrumentId())
+                                .instrumentType(c.getInstrumentType())
+                                .weight(c.getWeight())
+                                .currency(c.getCurrency())
+                                .build())
+                        .collect(Collectors.toList()))
+                .build();
+        createBasket(dto);
     }
 
-    private void updateStatus(UUID basketId, String status) {
+    @Transactional
+    public void handleBasketPriced(BasketPricedEvent event) {
+        log.info("Handling basket priced event for basket: {}. NAV: {}", event.getBasketId(), event.getNav());
+        updateStatus(event.getBasketId(), "PRICED");
+    }
+
+    @Transactional
+    public void handleBasketListingCompleted(BasketListingCompletedEvent event) {
+        log.info("Handling basket listing completed event for basket: {}", event.getBasketId());
+        updateStatus(event.getBasketId(), "LISTED");
+    }
+
+    @Transactional
+    public void handleProviderPublished(ProviderPublishedEvent event) {
+        log.info("Handling provider published event for basket: {}", event.getBasketId());
+        updateStatus(event.getBasketId(), "PUBLISHED");
+    }
+
+    @Transactional
+    public void updateStatus(UUID basketId, String status) {
         basketRepository.findById(basketId).ifPresent(basket -> {
             log.info("Updating basket {} status to {}", basketId, status);
             basket.setStatus(status);
@@ -54,7 +86,7 @@ public class BasketService {
     public BasketDto createBasket(BasketDto basketDto) {
         log.info("Creating new basket: {}", basketDto.getName());
         Basket basket = basketMapper.toEntity(basketDto);
-        basket.setStatus("DRAFT");
+        basket.setStatus("LISTING_IN_PROGRESS");
         
         if (basketDto.getConstituents() != null) {
             basketDto.getConstituents().forEach(cDto -> {
@@ -65,6 +97,13 @@ public class BasketService {
         }
 
         Basket saved = basketRepository.save(basket);
+
+        // Choreography: Emit the first event to kick off the chain
+        eventPublisher.publish("basketCreated-out-0", BasketCreatedEvent.builder()
+                .basketId(saved.getId())
+                .providers(List.of("BLOOMBERG", "REFINITIV"))
+                .build());
+
         return basketMapper.toDto(saved);
     }
 
@@ -105,62 +144,5 @@ public class BasketService {
         return basketRepository.findById(id)
                 .map(basketMapper::toDto)
                 .orElseThrow(() -> new BusinessException("BASKET_NOT_FOUND", "Basket not found", HttpStatus.NOT_FOUND));
-    }
-
-    @Transactional
-    public void markReadyForListing(UUID basketId) {
-        log.info("Marking basket {} ready for listing", basketId);
-        Basket basket = basketRepository.findById(basketId)
-                .orElseThrow(() -> new BusinessException("BASKET_NOT_FOUND", "Basket not found", HttpStatus.NOT_FOUND));
-
-        if (!"DRAFT".equals(basket.getStatus())) {
-            throw new BusinessException("INVALID_STATUS", "Only DRAFT baskets can be listed", HttpStatus.BAD_REQUEST);
-        }
-
-        basket.setStatus("LISTED");
-        basketRepository.save(basket);
-
-        eventPublisher.publish("basketListed-out-0", BasketListedEvent.builder()
-                .basketId(basketId)
-                .providers(List.of("BLOOMBERG", "REFINITIV"))
-                .build());
-    }
-
-    @Transactional
-    public void markReadyForPricing(UUID basketId) {
-        log.info("Marking basket {} ready for pricing", basketId);
-        Basket basket = basketRepository.findById(basketId)
-                .orElseThrow(() -> new BusinessException("BASKET_NOT_FOUND", "Basket not found", HttpStatus.NOT_FOUND));
-
-        if (!"LISTED".equals(basket.getStatus())) {
-            throw new BusinessException("INVALID_STATUS", "Only LISTED baskets can be marked for pricing", HttpStatus.BAD_REQUEST);
-        }
-
-        basket.setStatus("READY_FOR_PRICING");
-        basketRepository.save(basket);
-
-        eventPublisher.publish("basketReadyForPricing-out-0", BasketReadyForPricingEvent.builder()
-                .basketId(basketId)
-                .build());
-    }
-
-    @Transactional
-    public void markReadyForPublishing(UUID basketId) {
-        log.info("Marking basket {} ready for publishing", basketId);
-        Basket basket = basketRepository.findById(basketId)
-                .orElseThrow(() -> new BusinessException("BASKET_NOT_FOUND", "Basket not found", HttpStatus.NOT_FOUND));
-
-        if (!"PRICED".equals(basket.getStatus())) {
-            throw new BusinessException("INVALID_STATUS", "Only PRICED baskets can be marked for publishing", HttpStatus.BAD_REQUEST);
-        }
-
-        basket.setStatus("READY_FOR_PUBLISHING");
-        basketRepository.save(basket);
-
-        // No explicit event here, assumed Publishing Service will listen to status changes or we emit another event
-        // Let's emit a ReadyForPublishing event
-        eventPublisher.publish("basketReadyForPublishing-out-0", BasketReadyForPricingEvent.builder() // Reuse payload for now
-                .basketId(basketId)
-                .build());
     }
 }

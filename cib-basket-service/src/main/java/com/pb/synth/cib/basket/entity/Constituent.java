@@ -38,9 +38,6 @@ public class Constituent {
 
     private String currency;
 
-    @Column(precision = 18, scale = 6)
-    private BigDecimal divisor;
-
     @Column(name = "as_of")
     private Instant asOf;
 }

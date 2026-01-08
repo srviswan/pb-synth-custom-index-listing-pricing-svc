@@ -107,6 +107,19 @@
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>com.google.cloud.tools</groupId>
+                    <artifactId>jib-maven-plugin</artifactId>
+                    <version>3.4.1</version>
+                    <configuration>
+                        <from>
+                            <image>eclipse-temurin:21-jre-alpine</image>
+                        </from>
+                        <to>
+                            <image>cib/${project.artifactId}:latest</image>
+                        </to>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>

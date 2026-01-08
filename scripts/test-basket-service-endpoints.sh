@@ -8,7 +8,8 @@ CREATE_RESPONSE=$(curl -s -X POST "$BASE_URL" \
      -d '{
            "name": "Tech Giants Index",
            "type": "EQUITY",
-           "sourceSystem": "OMS"
+           "sourceSystem": "OMS",
+           "divisor": 100.0
          }')
 
 echo "Response: $CREATE_RESPONSE"
