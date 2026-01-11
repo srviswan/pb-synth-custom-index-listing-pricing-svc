@@ -1,0 +1,10 @@
+ID,Name,Duration,Predecessors,Outline Level,Text1_FundingBucket,Flag1_Approved,Text3_Stage,Text2_Risk,Number1_Priority,Text4_StrategicTheme,BudgetCost
+0,Project Summary,0,,0,Compliance,Yes,Initiation,High,70,Compliance,220000
+1,Initiation,4d,,1,Compliance,Yes,Initiation,High,70,Compliance,
+2,Funding Approval (MS),0d,1,2,Compliance,Yes,Initiation,High,70,Compliance,
+3,Planning,9d,2,1,Compliance,Yes,Planning,High,70,Compliance,
+4,Baseline Set (MS),0d,3,2,Compliance,Yes,Planning,High,70,Compliance,
+5,Execution,24d,4,1,Compliance,Yes,Execution,High,70,Compliance,
+6,Deploy (MS),0d,5,2,Compliance,Yes,Execution,High,70,Compliance,
+7,Close,4d,6,1,Compliance,Yes,Close,Medium,70,Compliance,
+8,Lessons Learned (MS),0d,7,2,Compliance,Yes,Close,Medium,70,Compliance,

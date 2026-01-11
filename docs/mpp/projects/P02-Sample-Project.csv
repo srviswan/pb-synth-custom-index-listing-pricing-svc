@@ -1,0 +1,10 @@
+ID,Name,Duration,Predecessors,Outline Level,Text1_FundingBucket,Flag1_Approved,Text3_Stage,Text2_Risk,Number1_Priority,Text4_StrategicTheme,BudgetCost
+0,Project Summary,0,,0,Ops,Yes,Initiation,Low,60,Resiliency,180000
+1,Initiation,3d,,1,Ops,Yes,Initiation,Low,60,Resiliency,
+2,Funding Approval (MS),0d,1,2,Ops,Yes,Initiation,Low,60,Resiliency,
+3,Planning,7d,2,1,Ops,Yes,Planning,Low,60,Resiliency,
+4,Baseline Set (MS),0d,3,2,Ops,Yes,Planning,Low,60,Resiliency,
+5,Execution,20d,4,1,Ops,Yes,Execution,Low,60,Resiliency,
+6,Deploy (MS),0d,5,2,Ops,Yes,Execution,Low,60,Resiliency,
+7,Close,4d,6,1,Ops,Yes,Close,Low,60,Resiliency,
+8,Lessons Learned (MS),0d,7,2,Ops,Yes,Close,Low,60,Resiliency,

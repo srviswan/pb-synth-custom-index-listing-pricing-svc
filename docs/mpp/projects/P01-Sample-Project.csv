@@ -1,0 +1,10 @@
+ID,Name,Duration,Predecessors,Outline Level,Text1_FundingBucket,Flag1_Approved,Text3_Stage,Text2_Risk,Number1_Priority,Text4_StrategicTheme,BudgetCost
+0,Project Summary,0,,0,Strategic,Yes,Initiation,Medium,80,MarketReach,250000
+1,Initiation,4d,,1,Strategic,Yes,Initiation,Medium,80,MarketReach,
+2,Funding Approval (MS),0d,1,2,Strategic,Yes,Initiation,Medium,80,MarketReach,
+3,Planning,8d,2,1,Strategic,Yes,Planning,Medium,80,MarketReach,
+4,Baseline Set (MS),0d,3,2,Strategic,Yes,Planning,Medium,80,MarketReach,
+5,Execution,25d,4,1,Strategic,Yes,Execution,Medium,80,MarketReach,
+6,Deploy (MS),0d,5,2,Strategic,Yes,Execution,Medium,80,MarketReach,
+7,Close,4d,6,1,Strategic,Yes,Close,Low,80,MarketReach,
+8,Lessons Learned (MS),0d,7,2,Strategic,Yes,Close,Low,80,MarketReach,

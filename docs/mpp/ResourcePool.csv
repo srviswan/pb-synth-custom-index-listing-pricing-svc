@@ -1,0 +1,8 @@
+Resource Name,Type,Standard Rate,Max Units,Base Calendar,Text1_Role
+PM,Work,120,100%,Standard,PM
+Architect,Work,150,100%,Standard,Architect
+Dev,Work,100,200%,Standard,Dev
+QA,Work,80,200%,Standard,QA
+BA,Work,90,100%,Standard,BA
+Infra,Work,110,100%,Standard,Infra
+Support,Work,70,100%,Standard,Support
