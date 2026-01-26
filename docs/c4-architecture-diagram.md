@@ -72,22 +72,24 @@ graph TB
         EventBus["Event Bus<br/>Kafka / Solace<br/><br/>• Async event streaming<br/>• Broker-agnostic<br/>• Partitioning & DLQ"]
     end
     
-    subgraph ObservabilityStack["Observability"]
-        Observability[Prometheus<br/>OpenTelemetry<br/>Actuator]
-    end
-    
     subgraph ExtSystems["External Systems"]
         Bloomberg[Bloomberg<br/>Market Data Provider]
         Refinitiv[Refinitiv<br/>Market Data Provider]
         Market[Live Market<br/>Financial Markets]
     end
     
-    %% Force vertical stacking with invisible connections
+    subgraph ObservabilityStack["Observability"]
+        Observability[Prometheus<br/>OpenTelemetry<br/>Actuator]
+    end
+    
+    %% Force vertical stacking for main flow (left side)
     Actors -.->|""| AppServices
     AppServices -.->|""| DataStores
     DataStores -.->|""| Infrastructure
-    Infrastructure -.->|""| ObservabilityStack
-    ObservabilityStack -.->|""| ExtSystems
+    Infrastructure -.->|""| ExtSystems
+    
+    %% Position Observability on the right side (horizontal connection)
+    DataStores -->|""| ObservabilityStack
     
     %% User interactions
     User -->|"REST API<br/>HTTPS"| BasketSvc
