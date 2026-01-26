@@ -89,41 +89,46 @@ graph TB
         <p class="description">Shows the high-level technical building blocks (containers) and how they interact.</p>
         <div class="mermaid">
 graph TB
-    subgraph "External Actors"
+    subgraph Actors["External Actors"]
         User[Front Office User]
         ExtSys[External System]
     end
     
-    subgraph "Custom Index Listing & Pricing Suite"
-        subgraph "Application Services"
-            BasketSvc["Basket Service<br/>Java 21, Spring Boot<br/><br/>• Manages basket lifecycle<br/>• Versioning & rebalancing<br/>• CVT calculation<br/>• REST API"]
-            ListingSvc["Listing Service<br/>Java 21, Spring Boot<br/><br/>• Registers baskets with providers<br/>• Fan-out to multiple providers<br/>• Event-driven"]
-            PricingSvc["Pricing Service<br/>Java 21, Spring Boot<br/><br/>• Calculates NAV<br/>• Continuous pricing 5s<br/>• Data quality checks"]
-            PublishingSvc["Publishing Service<br/>Java 21, Spring Boot<br/><br/>• Publishes to markets<br/>• Integrity validation<br/>• Provider-specific delivery"]
-            MarketDataSvc["Market Data Service<br/>Java 21, Spring Boot<br/><br/>• Fetches prices & FX<br/>• Normalizes data<br/>• Caching & staleness checks"]
-            RefDataSvc["Reference Data Service<br/>Java 21, Spring Boot<br/><br/>• Instrument validation<br/>• Eligibility rules<br/>• Golden source data"]
-        end
-        
-        subgraph "Data Stores"
-            Postgres[("PostgreSQL Database<br/><br/>• Basket definitions<br/>• Constituents<br/>• Instructions<br/>• Audit events")]
-            MSSQL[("MSSQL Database<br/><br/>• Primary production DB<br/>• Azure SQL Edge")]
-            Cache[("Cache Layer<br/>Redis / Hazelcast<br/><br/>• Market data cache<br/>• Reference data cache<br/>• Pluggable providers")]
-        end
-        
-        subgraph "Infrastructure"
-            EventBus["Event Bus<br/>Kafka / Solace<br/><br/>• Async event streaming<br/>• Broker-agnostic<br/>• Partitioning & DLQ"]
-        end
+    subgraph AppServices["Application Services"]
+        BasketSvc["Basket Service<br/>Java 21, Spring Boot<br/><br/>• Manages basket lifecycle<br/>• Versioning & rebalancing<br/>• CVT calculation<br/>• REST API"]
+        ListingSvc["Listing Service<br/>Java 21, Spring Boot<br/><br/>• Registers baskets with providers<br/>• Fan-out to multiple providers<br/>• Event-driven"]
+        PricingSvc["Pricing Service<br/>Java 21, Spring Boot<br/><br/>• Calculates NAV<br/>• Continuous pricing 5s<br/>• Data quality checks"]
+        PublishingSvc["Publishing Service<br/>Java 21, Spring Boot<br/><br/>• Publishes to markets<br/>• Integrity validation<br/>• Provider-specific delivery"]
+        MarketDataSvc["Market Data Service<br/>Java 21, Spring Boot<br/><br/>• Fetches prices & FX<br/>• Normalizes data<br/>• Caching & staleness checks"]
+        RefDataSvc["Reference Data Service<br/>Java 21, Spring Boot<br/><br/>• Instrument validation<br/>• Eligibility rules<br/>• Golden source data"]
     end
     
-    subgraph "External Systems"
+    subgraph DataStores["Data Stores"]
+        Postgres[("PostgreSQL Database<br/><br/>• Basket definitions<br/>• Constituents<br/>• Instructions<br/>• Audit events")]
+        MSSQL[("MSSQL Database<br/><br/>• Primary production DB<br/>• Azure SQL Edge")]
+        Cache[("Cache Layer<br/>Redis / Hazelcast<br/><br/>• Market data cache<br/>• Reference data cache<br/>• Pluggable providers")]
+    end
+    
+    subgraph Infrastructure["Infrastructure"]
+        EventBus["Event Bus<br/>Kafka / Solace<br/><br/>• Async event streaming<br/>• Broker-agnostic<br/>• Partitioning & DLQ"]
+    end
+    
+    subgraph ObservabilityStack["Observability"]
+        Observability[Prometheus<br/>OpenTelemetry<br/>Actuator]
+    end
+    
+    subgraph ExtSystems["External Systems"]
         Bloomberg[Bloomberg<br/>Market Data Provider]
         Refinitiv[Refinitiv<br/>Market Data Provider]
         Market[Live Market<br/>Financial Markets]
     end
     
-    subgraph "Observability"
-        Observability[Prometheus<br/>OpenTelemetry<br/>Actuator]
-    end
+    %% Force vertical stacking with invisible connections
+    Actors -.->|""| AppServices
+    AppServices -.->|""| DataStores
+    DataStores -.->|""| Infrastructure
+    Infrastructure -.->|""| ObservabilityStack
+    ObservabilityStack -.->|""| ExtSystems
     
     %% User interactions
     User -->|"REST API<br/>HTTPS"| BasketSvc
