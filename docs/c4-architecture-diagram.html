@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C4 Model Architecture Diagrams - Custom Index Listing & Pricing Suite</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0277bd;
+            border-bottom: 3px solid #0277bd;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0288d1;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+        .mermaid {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .description {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>C4 Model Architecture Diagrams</h1>
+    <p style="color: #666; font-size: 1.1em;">Custom Index Listing & Pricing Suite - High-Level Architecture Visualization</p>
+
+    <div class="diagram-container">
+        <h2>Level 1: System Context Diagram</h2>
+        <p class="description">Shows the Custom Index Listing & Pricing Suite system and how it interacts with users and external systems.</p>
+        <div class="mermaid">
+graph TB
+    subgraph "External Actors"
+        User[Front Office User<br/>Creates and manages<br/>custom index baskets]
+        ExtSys[External System<br/>Integrates via<br/>async events]
+    end
+    
+    subgraph "Custom Index Listing & Pricing Suite"
+        System[Custom Index Listing<br/>& Pricing Suite<br/><br/>Automates full lifecycle of<br/>custom synthetic indices<br/>from creation to market publishing]
+    end
+    
+    subgraph "External Systems"
+        Bloomberg[Bloomberg<br/>Market Data Provider]
+        Refinitiv[Refinitiv<br/>Market Data Provider]
+        Market[Live Market<br/>Financial markets receiving<br/>published indices]
+    end
+    
+    User -->|"REST API<br/>Creates baskets, views status"| System
+    ExtSys -->|"Async Events<br/>Basket creation requests"| System
+    System -->|"FIX/REST API<br/>Lists indices, fetches data"| Bloomberg
+    System -->|"EMA/REST API<br/>Lists indices, fetches data"| Refinitiv
+    System -->|"FIX/SFTP/API<br/>Publishes validated indices"| Market
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <h2>Level 2: Container Diagram</h2>
+        <p class="description">Shows the high-level technical building blocks (containers) and how they interact.</p>
+        <div class="mermaid">
+graph TB
+    subgraph "External Actors"
+        User[Front Office User]
+        ExtSys[External System]
+    end
+    
+    subgraph "Custom Index Listing & Pricing Suite"
+        subgraph "Application Services"
+            BasketSvc["Basket Service<br/>Java 21, Spring Boot<br/><br/>• Manages basket lifecycle<br/>• Versioning & rebalancing<br/>• CVT calculation<br/>• REST API"]
+            ListingSvc["Listing Service<br/>Java 21, Spring Boot<br/><br/>• Registers baskets with providers<br/>• Fan-out to multiple providers<br/>• Event-driven"]
+            PricingSvc["Pricing Service<br/>Java 21, Spring Boot<br/><br/>• Calculates NAV<br/>• Continuous pricing 5s<br/>• Data quality checks"]
+            PublishingSvc["Publishing Service<br/>Java 21, Spring Boot<br/><br/>• Publishes to markets<br/>• Integrity validation<br/>• Provider-specific delivery"]
+            MarketDataSvc["Market Data Service<br/>Java 21, Spring Boot<br/><br/>• Fetches prices & FX<br/>• Normalizes data<br/>• Caching & staleness checks"]
+            RefDataSvc["Reference Data Service<br/>Java 21, Spring Boot<br/><br/>• Instrument validation<br/>• Eligibility rules<br/>• Golden source data"]
+        end
+        
+        subgraph "Data Stores"
+            Postgres[("PostgreSQL Database<br/><br/>• Basket definitions<br/>• Constituents<br/>• Instructions<br/>• Audit events")]
+            MSSQL[("MSSQL Database<br/><br/>• Primary production DB<br/>• Azure SQL Edge")]
+            Cache[("Cache Layer<br/>Redis / Hazelcast<br/><br/>• Market data cache<br/>• Reference data cache<br/>• Pluggable providers")]
+        end
+        
+        subgraph "Infrastructure"
+            EventBus["Event Bus<br/>Kafka / Solace<br/><br/>• Async event streaming<br/>• Broker-agnostic<br/>• Partitioning & DLQ"]
+        end
+    end
+    
+    subgraph "External Systems"
+        Bloomberg[Bloomberg<br/>Market Data Provider]
+        Refinitiv[Refinitiv<br/>Market Data Provider]
+        Market[Live Market<br/>Financial Markets]
+    end
+    
+    subgraph "Observability"
+        Observability[Prometheus<br/>OpenTelemetry<br/>Actuator]
+    end
+    
+    %% User interactions
+    User -->|"REST API<br/>HTTPS"| BasketSvc
+    ExtSys -->|"Async Events"| EventBus
+    
+    %% Basket Service interactions
+    BasketSvc -->|"Read/Write"| Postgres
+    BasketSvc -->|"Publish/Consume"| EventBus
+    BasketSvc -->|"Validate instruments<br/>gRPC"| RefDataSvc
+    BasketSvc -->|"Metrics & Health"| Observability
+    
+    %% Listing Service interactions
+    EventBus -->|"BasketCreated Event"| ListingSvc
+    ListingSvc -->|"Register index<br/>FIX Protocol"| Bloomberg
+    ListingSvc -->|"Register index<br/>EMA/REST"| Refinitiv
+    ListingSvc -->|"ListingCompleted Event"| EventBus
+    ListingSvc -->|"Metrics & Health"| Observability
+    
+    %% Pricing Service interactions
+    EventBus -->|"ListingCompleted Event"| PricingSvc
+    PricingSvc -->|"Fetch prices<br/>gRPC"| MarketDataSvc
+    PricingSvc -->|"Cache prices"| Cache
+    PricingSvc -->|"Priced Event"| EventBus
+    PricingSvc -->|"Metrics & Health"| Observability
+    
+    %% Publishing Service interactions
+    EventBus -->|"Priced Event"| PublishingSvc
+    PublishingSvc -->|"Deliver indices<br/>FIX/SFTP/API"| Market
+    PublishingSvc -->|"Published Event"| EventBus
+    PublishingSvc -->|"Metrics & Health"| Observability
+    
+    %% Market Data Service interactions
+    MarketDataSvc -->|"Fetch prices<br/>REST API"| Bloomberg
+    MarketDataSvc -->|"Fetch prices<br/>REST API"| Refinitiv
+    MarketDataSvc -->|"Cache prices"| Cache
+    MarketDataSvc -->|"Metrics & Health"| Observability
+    
+    %% Reference Data Service interactions
+    RefDataSvc -->|"Cache data"| Cache
+    RefDataSvc -->|"Metrics & Health"| Observability
+    
+    %% Styling
+    classDef serviceClass fill:#e1f5ff,stroke:#0277bd,stroke-width:2px
+    classDef dataClass fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef infraClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef extClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    
+    class BasketSvc,ListingSvc,PricingSvc,PublishingSvc,MarketDataSvc,RefDataSvc serviceClass
+    class Postgres,MSSQL,Cache dataClass
+    class EventBus,Observability infraClass
+    class Bloomberg,Refinitiv,Market extClass
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <h2>Level 3: Component Diagram - Basket Service</h2>
+        <p class="description">Shows the components within the Basket Service container.</p>
+        <div class="mermaid">
+graph TB
+    subgraph "Basket Service Container"
+        subgraph "API Layer"
+            RESTAPI[REST API Controller<br/>Spring MVC<br/><br/>• POST /api/v1/baskets<br/>• GET /api/v1/baskets/{id}<br/>• POST /api/v1/baskets/{id}/rebalance<br/>• GET /api/v1/baskets/{id}/versions]
+        end
+        
+        subgraph "Business Logic"
+            BasketService[Basket Service<br/>Spring Service<br/><br/>• Create/update baskets<br/>• Status management<br/>• Constituent validation]
+            RebalanceService[Rebalance Service<br/>Spring Service<br/><br/>• Zero P&L rebalancing<br/>• CVT calculation<br/>• Version creation]
+        end
+        
+        subgraph "Data Access"
+            BasketRepo[Basket Repository<br/>Spring Data JPA<br/><br/>• CRUD operations<br/>• Version queries<br/>• Optimistic locking]
+            InstructionRepo[Instruction Repository<br/>Spring Data JPA<br/><br/>• Rebalance audit trail<br/>• Instruction status]
+        end
+        
+        subgraph "Integration"
+            EventPublisher[Event Publisher<br/>Messaging Service<br/><br/>• Publishes events<br/>• Partition key extraction]
+            MessagingListener[Messaging Listeners<br/>@MessagingListener<br/><br/>• Consumes events<br/>• Async processing]
+        end
+    end
+    
+    subgraph "External"
+        EventBus[Event Bus<br/>Kafka/Solace]
+        RefDataSvc[Reference Data Service<br/>gRPC]
+        Postgres[("PostgreSQL")]
+    end
+    
+    RESTAPI -->|"Delegates to"| BasketService
+    RESTAPI -->|"Delegates to"| RebalanceService
+    BasketService -->|"Reads/Writes"| BasketRepo
+    RebalanceService -->|"Reads/Writes"| BasketRepo
+    RebalanceService -->|"Reads/Writes"| InstructionRepo
+    BasketService -->|"Publishes"| EventPublisher
+    RebalanceService -->|"Publishes"| EventPublisher
+    EventPublisher -->|"Sends events"| EventBus
+    EventBus -->|"Delivers events"| MessagingListener
+    MessagingListener -->|"Triggers"| BasketService
+    MessagingListener -->|"Triggers"| RebalanceService
+    BasketService -->|"Validates"| RefDataSvc
+    BasketRepo -->|"JDBC"| Postgres
+    InstructionRepo -->|"JDBC"| Postgres
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <h2>Level 3: Component Diagram - Pricing Service</h2>
+        <p class="description">Shows the components within the Pricing Service container.</p>
+        <div class="mermaid">
+graph TB
+    subgraph "Pricing Service Container"
+        subgraph "Event Processing"
+            MessagingListener[Messaging Listeners<br/>@MessagingListener<br/><br/>• Consumes ListingCompleted<br/>• Consumes Decommissioned]
+        end
+        
+        subgraph "Business Logic"
+            PricingService[Pricing Service<br/>Spring Service<br/><br/>• NAV calculation<br/>• Continuous pricing 5s<br/>• Data quality checks<br/>• Scheduled executor]
+        end
+        
+        subgraph "Data Quality"
+            DQGatekeepers[Data Quality Gatekeepers<br/><br/>• Staleness check<br/>• Variance check<br/>• Non-positive price check<br/>• FX availability check]
+        end
+        
+        subgraph "Integration"
+            EventPublisher[Event Publisher<br/>Messaging Service<br/><br/>• Publishes Priced events]
+            MarketDataClient[Market Data Client<br/>gRPC Client<br/><br/>• Fetches prices<br/>• Circuit breaker<br/>• Fallback handling]
+        end
+    end
+    
+    subgraph "External"
+        EventBus[Event Bus<br/>Kafka/Solace]
+        MarketDataSvc[Market Data Service<br/>gRPC]
+    end
+    
+    EventBus -->|"ListingCompleted Event"| MessagingListener
+    MessagingListener -->|"Triggers"| PricingService
+    PricingService -->|"Validates"| DQGatekeepers
+    PricingService -->|"Fetches prices"| MarketDataClient
+    MarketDataClient -->|"gRPC call"| MarketDataSvc
+    PricingService -->|"Publishes"| EventPublisher
+    EventPublisher -->|"Sends events"| EventBus
+    PricingService -.->|"5s heartbeat loop"| PricingService
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <h2>Deployment Architecture</h2>
+        <p class="description">Shows how services are deployed in a containerized environment.</p>
+        <div class="mermaid">
+graph TB
+    subgraph "Kubernetes / Container Orchestration"
+        subgraph "Basket Service Pods"
+            BasketPod1[Basket Service<br/>Instance 1]
+            BasketPod2[Basket Service<br/>Instance 2]
+        end
+        
+        subgraph "Listing Service Pods"
+            ListingPod1[Listing Service<br/>Instance 1]
+            ListingPod2[Listing Service<br/>Instance 2]
+        end
+        
+        subgraph "Pricing Service Pods"
+            PricingPod1[Pricing Service<br/>Instance 1]
+            PricingPod2[Pricing Service<br/>Instance 2]
+        end
+        
+        subgraph "Publishing Service Pods"
+            PublishingPod1[Publishing Service<br/>Instance 1]
+            PublishingPod2[Publishing Service<br/>Instance 2]
+        end
+    end
+    
+    subgraph "Shared Infrastructure"
+        Kafka[Kafka Cluster<br/>3 partitions<br/>Replication factor 3]
+        Postgres[PostgreSQL<br/>Primary/Replica]
+        Redis[Redis Cluster<br/>Cache]
+    end
+    
+    BasketPod1 --> Kafka
+    BasketPod2 --> Kafka
+    ListingPod1 --> Kafka
+    ListingPod2 --> Kafka
+    PricingPod1 --> Kafka
+    PricingPod2 --> Kafka
+    PublishingPod1 --> Kafka
+    PublishingPod2 --> Kafka
+    
+    BasketPod1 --> Postgres
+    BasketPod2 --> Postgres
+    
+    PricingPod1 --> Redis
+    PricingPod2 --> Redis
+        </div>
+    </div>
+
+</body>
+</html>
